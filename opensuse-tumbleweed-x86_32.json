@@ -29,7 +29,7 @@
       "qemuargs": [
         [
           "-m",
-          "1280"
+          "1500"
         ]
       ],
       "shutdown_command": "systemctl poweroff",
