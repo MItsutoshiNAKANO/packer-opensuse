@@ -1,6 +1,7 @@
 #!/bin/sh -ex
 
-rm -rf /tmp/*
+cat /etc/ssh/sshd_config
+rm -f /etc/ssh/ssh_host*
 
-sync
-fstrim  -v /
+fstrim -v / || echo dummy
+

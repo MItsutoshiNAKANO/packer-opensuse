@@ -1,4 +1,8 @@
 {
+  "variables": {
+    "DESTDIR": "{{env `DESTDIR`}}",
+    "name": "opensuse-leap-x86_64"
+  },
   "builders": [
     {
       "accelerator": "kvm",
@@ -21,8 +25,8 @@
       "http_directory": "http",
       "iso_urls": [ "http://mirror.yandex.ru/opensuse/distribution/leap/42.1/iso/openSUSE-Leap-42.1-DVD-x86_64.iso" ],
       "net_device": "virtio-net",
-      "output_directory": "output/opensuse-leap-x86_64-qemu",
-      "machine_type": "pc-i440fx-1.7",
+      "output_directory": "output/{{user `name`}}-qemu",
+      "machine_type": "q35",
       "qemuargs": [
         [
           "-m",
@@ -34,29 +38,59 @@
       "ssh_username": "root",
       "ssh_wait_timeout": "1200s",
       "type": "qemu",
-      "vm_name": "opensuse-leap-x86_64"
+      "vm_name": "{{user `name`}}"
     }
   ],
   "provisioners": [
     {
       "scripts": [
-        "scripts/base.sh",
-        "scripts/reboot.sh"
-      ],
-      "type": "shell"
-    },
-    {
-      "scripts": [
+        "scripts/cleanup.sh",
         "scripts/cloudinit.sh",
-        "scripts/cleanup.sh"
+        "scripts/cloudagent.sh"
       ],
-      "pause_before": "30s",
       "type": "shell"
     },
     {
       "type": "file",
       "source": "files/80-hotplug-cpu-mem.rules",
       "destination": "/etc/udev/rules.d/80-hotplug-cpu-mem.rules"
+    },
+    {
+      "type": "file",
+      "source": "files/goss.yaml",
+      "destination": "/tmp/goss.yaml"
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/goss.sh"
+      ]
     }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "checksum",
+        "output": "output/{{user `name`}}-qemu/{{user `name`}}.md5sums"
+      },
+      {
+        "type": "manifest",
+        "filename": "output/{{user `name`}}-qemu/{{user `name`}}.manifest",
+        "strip_path": true
+      },
+      {
+        "type": "artifice",
+        "files": [
+          "output/{{user `name`}}-qemu/*"
+        ]
+      },
+      {
+        "type": "shell-local",
+        "inline": [
+          "DESTDIR={{user `DESTDIR` }}; mkdir -p ${DESTDIR:-images}; mv $1 ${DESTDIR:-images}/"
+        ]
+      }
+    ]
   ]
 }
+

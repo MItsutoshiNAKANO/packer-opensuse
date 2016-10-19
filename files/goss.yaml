@@ -1,0 +1,64 @@
+file:
+  /etc/ssh/ssh_host_dsa_key:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_dsa_key.pub:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_ecdsa_key:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_ecdsa_key.pub:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_ed25519_key:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_ed25519_key.pub:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_rsa_key:
+    exists: false
+    contains: []
+  /etc/ssh/ssh_host_rsa_key.pub:
+    exists: false
+    contains: []
+  /etc/ssh/sshd_config:
+    exists: true
+    filetype: file
+    contains:
+      - "/^UseDNS no/"
+      - "/^PermitRootLogin yes/"
+  /usr/sbin/fdisk:
+    exists: true
+    filetype: file
+    contains: []
+  /usr/sbin/resize2fs:
+    exists: true
+    filetype: file
+    contains: []
+  /opt/bin/cloudinit:
+    exists: true
+    filetype: file
+    contains: []
+  /opt/bin/cloudagent:
+    exists: true
+    filetype: file
+    contains: []
+port:
+  tcp:22:
+    listening: true
+    ip: []
+service:
+  cloudinit:
+    enabled: true
+    running: false
+  cloudagent:
+    enabled: true
+    running: false
+  sshd:
+    enabled: true
+    running: true
+interface:
+  eth0:
+    exists: true

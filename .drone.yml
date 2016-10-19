@@ -1,0 +1,28 @@
+pipeline:
+  clone:
+    image: plugins/git
+    depth: 1
+    when:
+      branch: master
+  build:
+    image: vtolstov/drone-packer
+    devices:
+      - "/dev/kvm:/dev/kvm"
+    privileged: true
+    pull: true
+    commands:
+      - CHECKPOINT_DISABLE=1 PACKER_LOG=1 DESTDIR=/drone/images packer build ${TEMPLATE}.json
+  publish:
+    image: vtolstov/drone-swift
+    pull: true
+    source: /drone/images/*
+    strip_prefix: /drone/images/
+    target: /images
+    when:
+      event: push
+      branch: master
+matrix:
+  TEMPLATE:
+    - opensuse-leap-x86_64
+    - opensuse-tumbleweed-x86_32
+    - opensuse-tumbleweed-x86_64

@@ -178,6 +178,8 @@
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        <service>systemd-networkd</service>
+        <service>systemd-timesyncd</service>
       </enable>
     </services>
   </services-manager>
@@ -257,29 +259,23 @@
   <scripts>
     <chroot-scripts config:type="list">
       <script>
-        <filename>80-net-setup-link.sh</filename>
+        <filename>script.sh</filename>
         <interpreter>shell</interpreter>
-        <source>ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules</source>
-        <feedback config:type="boolean">false</feedback>
-        <debug config:type="boolean">true</debug>
-        <chrooted config:type="boolean">true</chrooted>
-      </script>
-      <script>
-        <filename>80-net-name-slot.sh</filename>
-        <interpreter>shell</interpreter>
-        <source>ln -sf /dev/null /etc/udev/rules.d/80-net-name-slot.rules</source>
-        <feedback config:type="boolean">false</feedback>
-        <debug config:type="boolean">true</debug>
-        <chrooted config:type="boolean">true</chrooted>
-      </script>
-      <script>
-        <filename>sshd_config.sh</filename>
-        <interpreter>shell</interpreter>
-        <source>
-          echo "UseDNS no" >> /etc/ssh/sshd_config
-          echo "GSSAPIAuthentication no" >> /etc/ssh/sshd_config
-          sed -i -e 's|*.PermitRootLogin.*|PermitRootLogin yes|g' /etc/ssh/sshd_config
-        </source>
+        <source><![CDATA[
+          ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules
+          ln -sf /dev/null /etc/udev/rules.d/80-net-name-slot.rules
+          sed -i -e 's|.*PermitRootLogin.*|PermitRootLogin yes|g' -e 's|.*UseDNS.*|UseDNS no|g' /etc/ssh/sshd_config
+          cat <<EOF > /etc/systemd/network/dhcp.network
+            [Match]
+            Name=e*
+
+            [Network]
+            DHCP=yes
+
+            [DHCPv4]
+            UseHostname=false
+EOF
+]]>     </source>
         <feedback config:type="boolean">false</feedback>
         <debug config:type="boolean">true</debug>
         <chrooted config:type="boolean">true</chrooted>

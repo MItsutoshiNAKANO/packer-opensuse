@@ -4,13 +4,8 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://mirror.yandex.ru/opensuse/tumbleweed/repo/oss/]]></media_url>
+        <media_url><![CDATA[http://mirror.yandex.ru/opensuse/tumbleweed/repo/oss]]></media_url>
         <product>openSUSE</product>
-        <product_dir>/</product_dir>
-      </listentry>
-      <listentry>
-        <media_url><![CDATA[http://download.opensuse.org/update/tumbleweed/]]></media_url>
-        <product/>
         <product_dir>/</product_dir>
       </listentry>
     </add_on_products>
@@ -72,6 +67,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
+      <second_stage config:type="boolean">false</second_stage>
     </mode>
     <proposals config:type="list"/>
     <signature-handling>
@@ -174,12 +170,16 @@
   </report>
   <services-manager>
     <default_target>multi-user</default_target>
-    <services>
+    <!--
+      <services>
       <disable config:type="list"/>
       <enable config:type="list">
         <service>sshd</service>
+        <service>systemd-networkd</service>
+        <service>systemd-timesyncd</service>
       </enable>
     </services>
+    -->
   </services-manager>
   <software>
     <image/>
@@ -194,13 +194,20 @@
       <package>e2fsprogs</package>
       <package>less</package>
       <package>curl</package>
+      <package>iproute2</package>
+      <package>yast2-network</package>
+      <package>yast2-firstboot</package>
     </packages>
     <patterns config:type="list">
       <pattern>sw_management</pattern>
       <pattern>yast2-base</pattern>
       <pattern>base</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_install_wf</pattern>
+      <pattern>patterns-openSUSE-yast2_basis</pattern>
     </patterns>
     <remove-packages config:type="list">
+      <package>wicked</package>
       <package>desktop-translations</package>
       <package>kernel-firmware</package>
       <package>dconf</package>
@@ -257,17 +264,34 @@
   <scripts>
     <chroot-scripts config:type="list">
       <script>
-        <filename>newrename.sh</filename>
+        <filename>script.sh</filename>
         <interpreter>shell</interpreter>
-        <source>ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules</source>
-        <feedback config:type="boolean">false</feedback>
-        <debug config:type="boolean">true</debug>
-        <chrooted config:type="boolean">true</chrooted>
-      </script>
-      <script>
-        <filename>oldrename.sh</filename>
-        <interpreter>shell</interpreter>
-        <source>ln -sf /dev/null /etc/udev/rules.d/80-net-name-slot.rules</source>
+        <source><![CDATA[
+          systemctl enable sshd.service
+          systemctl enable systemd-resolved
+          systemctl enable systemd-networkd
+          systemctl enable systemd-timesyncd
+          #ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+          ln -sf /dev/null /etc/udev/rules.d/80-net-setup-link.rules
+          ln -sf /dev/null /etc/udev/rules.d/80-net-name-slot.rules
+          mkdir -p /etc/systemd/network
+          sed -i -e 's|.*PermitRootLogin.*|PermitRootLogin yes|g' -e 's|.*UseDNS.*|UseDNS no|g' /etc/ssh/sshd_config
+          cat <<EOF > /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+options rotate
+EOF
+          cat <<EOF > /etc/systemd/network/dhcp.network
+[Match]
+Name=e*
+
+[Network]
+DHCP=yes
+
+[DHCPv4]
+UseHostname=false
+EOF
+]]>     </source>
         <feedback config:type="boolean">false</feedback>
         <debug config:type="boolean">true</debug>
         <chrooted config:type="boolean">true</chrooted>
