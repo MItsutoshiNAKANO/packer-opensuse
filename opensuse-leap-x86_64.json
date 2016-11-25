@@ -75,7 +75,7 @@
       },
       {
         "type": "manifest",
-        "filename": "output/{{user `name`}}-qemu/{{user `name`}}.manifest",
+        "output": "output/{{user `name`}}-qemu/{{user `name`}}.manifest",
         "strip_path": true
       },
       {
